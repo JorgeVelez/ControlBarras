@@ -27,7 +27,7 @@ uint8_t RedB;
 uint8_t GreenB;
 uint8_t BlueB;
 
-int brightness = 200;
+int brightness = 255;
 
 unsigned long DELAY_TIME = 0; // 10 sec
 unsigned long INTERVAL = 1000;
@@ -80,21 +80,21 @@ void initTest()
   Serial.println("");
   Serial.println("Testing red1");
   for (int i = 0 ; i < NUM_LEDS ; i++) {
-    leds[i] = CRGB(127, 0, 0);
+    leds[i] = CRGB(255, 0, 0);
   }
   FastLED.show();
   delay(500);
   Serial.println("Testing green");
 
   for (int i = 0 ; i < NUM_LEDS ; i++) {
-    leds[i] = CRGB(0, 127, 0);
+    leds[i] = CRGB(0, 255, 0);
   }
   FastLED.show();
   delay(500);
   Serial.println("Testing blue");
 
   for (int i = 0 ; i < NUM_LEDS ; i++) {
-    leds[i] = CRGB(0, 0, 127);
+    leds[i] = CRGB(0, 0, 255);
   }
   FastLED.show();
   delay(500);
@@ -130,22 +130,34 @@ void initialize()
   FastLED.addLeds<APA102, 32, clockPin, BGR>(leds, 5 * NUM_LEDS_PER_STRIP, NUM_LEDS_PER_STRIP);
   FastLED.addLeds<APA102, 33, clockPin, BGR>(leds, 6 * NUM_LEDS_PER_STRIP, NUM_LEDS_PER_STRIP);
   //FastLED.addLeds<APA102, 39, clockPin, BGR>(leds, 7 * NUM_LEDS_PER_STRIP, NUM_LEDS_PER_STRIP);
-
+  //FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);  // GRB ordering is assumed
 
   FastLED.setBrightness(brightness);
 
   initTest();
 }
 
-void ledtoggle(OSCMessage &msg) {
-  switch (msg.getInt(0)) {
-  case 0:
-    Serial.print("llego 0");
-    break;
-  case 1:
-    Serial.print("llego 1");
-    break;
+void CambiaColorLed(OSCMessage &msg) {
+  uint8_t barra = msg.getInt(0);
+  uint8_t hue = msg.getInt(1);
+  uint8_t sat = msg.getInt(2);
+  uint8_t val = msg.getInt(3);
+  Serial.print("barra:");
+  Serial.print(barra);
+  Serial.print(" ");
+  Serial.print("hue:");
+  Serial.print(hue);
+  Serial.print(" ");
+  Serial.print("sat:");
+  Serial.print(sat);
+  Serial.print(" ");
+  Serial.print("val:");
+  Serial.println(val);
+  
+  for (int i = 0 ; i < NUM_LEDS ; i++) {
+    leds[i] = CHSV(hue, sat, val);
   }
+    FastLED.show(); 
 }
 
 void receiveMessage() {
@@ -157,7 +169,7 @@ void receiveMessage() {
       inmsg.fill(Udp.read());
     }
     if (!inmsg.hasError()) {
-      inmsg.dispatch("/led", ledtoggle);
+      inmsg.dispatch("/led", CambiaColorLed);
       packetCounter++;
     } 
     else { auto error = inmsg.getError(); }
@@ -168,19 +180,19 @@ void loop() {
   receiveMessage();
   delay(update_rate);
 
-  if (millis()  >= (DELAY_TIME + INTERVAL) && eth_connected) {
-    DELAY_TIME = millis(); // finished delay -- single shot, once only
-    Serial.print("frames: ");
-    Serial.print(frameCounter);
-    Serial.print("packets: ");
-    Serial.println(packetCounter);
-    frameCounter = 0;
-    packetCounter = 0;
-
-    Serial.print("ETH MAC: ");
-    Serial.print(ETH.macAddress());
-    Serial.print(", IPv4: ");
-    Serial.print(ETH.localIP());
-  }
+//  if (millis()  >= (DELAY_TIME + INTERVAL) && eth_connected) {
+//    DELAY_TIME = millis(); // finished delay -- single shot, once only
+//    Serial.print("frames: ");
+//    Serial.print(frameCounter);
+//    Serial.print("packets: ");
+//    Serial.println(packetCounter);
+//    frameCounter = 0;
+//    packetCounter = 0;
+//
+//    Serial.print("ETH MAC: ");
+//    Serial.print(ETH.macAddress());
+//    Serial.print(", IPv4: ");
+//    Serial.print(ETH.localIP());
+//  }
 
 }
