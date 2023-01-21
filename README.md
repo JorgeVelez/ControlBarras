@@ -1,6 +1,6 @@
 # ControlBarras
 
-##Dependencias
+## Dependencias
 
 https://github.com/CNMAT/OSC
 
